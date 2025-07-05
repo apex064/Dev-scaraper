@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DevScrape</title>
+    <style>
+        body { font-family: Arial; max-width: 900px; margin: auto; padding: 2rem; background: #f7f9fc; }
+        input, select, button { padding: 10px; margin: 10px 0; width: 100%; }
+        textarea { width: 100%; height: 300px; margin-top: 1rem; }
+        .section { margin-top: 2rem; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 4px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <h1>🔍 DevScrape - Web Scraping Modes</h1>
+    <form method="POST">
+        <input type="text" name="url" placeholder="Enter website URL..." required>
+        <select name="mode">
+            <option value="developer">Developer Mode (HTML + Assets)</option>
+            <option value="full">Full Scraper Mode (Meta + Emails + Tech)</option>
+        </select>
+        <button type="submit">Scrape</button>
+    </form>
+
+    {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+
+    {% if result.html %}
+    <div class="section">
+        <h2>🧱 HTML Preview</h2>
+        <textarea readonly>{{ result.html }}</textarea>
+        <a href="/download/html">⬇️ Download HTML</a>
+        {% if result.mode == 'developer' %}
+        <br><a href="/download/zip">📦 Download All Assets (ZIP)</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if result.assets %}
+    <div class="section">
+        <h2>📁 Assets</h2>
+        <ul>
+            <li>CSS Files: {{ result.assets.css|length }}</li>
+            <li>JS Files: {{ result.assets.js|length }}</li>
+            <li>Images: {{ result.assets.images|length }}</li>
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if result.meta %}
+    <div class="section">
+        <h2>📄 Meta Data</h2>
+        <p><strong>Title:</strong> {{ result.meta.title }}</p>
+        <p><strong>Description:</strong> {{ result.meta.description }}</p>
+    </div>
+    {% endif %}
+
+    {% if result.tech %}
+    <div class="section">
+        <h2>🧪 Tech Stack Detected</h2>
+        <ul>{% for t in result.tech %}<li>{{ t }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    {% if result.contacts %}
+    <div class="section">
+        <h2>📬 Contact Info</h2>
+        <p><strong>Emails:</strong></p>
+        <ul>{% for e in result.contacts.emails %}<li>{{ e }}</li>{% endfor %}</ul>
+        <p><strong>Social Links:</strong></p>
+        <ul>{% for l in result.contacts.social_links %}<li><a href="{{ l }}">{{ l }}</a></li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+</body>
+</html>
