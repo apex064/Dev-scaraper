@@ -1,61 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DevScrape - Dark Mode</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>DevScrape - Web Scraper</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="container">
-    <h1>🕵️ DevScrape</h1>
+    <div class="toast" id="toast"></div>
 
-    <!-- Toast -->
-    <div id="toast" class="toast"></div>
+    <div class="container">
+        <h1>🔍 DevScrape — Web Scraping Toolkit</h1>
 
-    <form method="POST" onsubmit="showLoader()">
-      <input type="text" name="url" placeholder="Enter website URL (e.g. https://example.com)" required>
-      <select name="mode">
-        <option value="developer">🧪 Developer Mode</option>
-        <option value="full">🕵️ Full Scraper Mode</option>
-      </select>
-      <button type="submit">Scrape Now</button>
-    </form>
+        <form method="POST" onsubmit="showLoader()">
+            <input type="text" name="url" placeholder="Enter website URL..." required>
+            <select name="mode">
+                <option value="developer">👨‍💻 Developer Mode (HTML + Assets)</option>
+                <option value="full">🧠 Full Scraper Mode (Meta + Emails + Tech)</option>
+            </select>
+            <button type="submit">Scrape</button>
+        </form>
 
-    <!-- Loader -->
-    <div id="loader" class="loader" style="display: none;"></div>
+        <div id="loader" class="loader" style="display:none;"></div>
 
-    {% if error %}
-      <script>showToast("❌ {{ error }}", true)</script>
-    {% endif %}
+        {% if error %}
+            <script>showToast("❌ {{ error }}", true)</script>
+        {% endif %}
 
-    {% if result %}
-      <script>showToast("✅ Scraping Complete!")</script>
-
-      <h2>Results for {{ result.url }}</h2>
-
-      {% if result.mode == 'developer' %}
-        <p><a href="/download/html" class="download">📄 Download HTML</a> | <a href="/download/zip" class="download">📦 Download Assets ZIP</a></p>
-        <pre>{{ result.html }}</pre>
-
-      {% elif result.mode == 'full' %}
-        <div class="tabs">
-          <button onclick="showTab('meta')">🧠 Meta</button>
-          <button onclick="showTab('tech')">🧰 Tech</button>
-          <button onclick="showTab('contacts')">📬 Contacts</button>
-          <button onclick="showTab('html')">🔍 HTML</button>
+        {% if result.html %}
+        <div class="section">
+            <h2>📄 HTML Preview</h2>
+            <textarea readonly>{{ result.html }}</textarea>
+            <a href="/download/html">⬇️ Download HTML</a>
+            {% if result.mode == 'developer' %}
+                <br><a href="/download/zip">📦 Download All Assets (ZIP)</a>
+            {% endif %}
         </div>
+        {% endif %}
 
-        <div id="tab-meta" class="tab-content"><pre>{{ result.meta }}</pre></div>
-        <div id="tab-tech" class="tab-content"><pre>{{ result.tech }}</pre></div>
-        <div id="tab-contacts" class="tab-content"><pre>{{ result.contacts }}</pre></div>
-        <div id="tab-html" class="tab-content"><pre>{{ result.html }}</pre></div>
+        {% if result.assets %}
+        <div class="section">
+            <h2>🧱 Assets Extracted</h2>
+            <ul>
+                <li><strong>CSS Files:</strong> {{ result.assets.css|length }}</li>
+                <li><strong>JS Files:</strong> {{ result.assets.js|length }}</li>
+                <li><strong>Images:</strong> {{ result.assets.images|length }}</li>
+            </ul>
+        </div>
+        {% endif %}
 
-        <script>showTab('meta')</script>
-      {% endif %}
-    {% endif %}
-  </div>
+        {% if result.meta or result.tech or result.contacts %}
+        <div class="tabs">
+            {% if result.meta %}<button onclick="showTab('meta')">📑 Meta</button>{% endif %}
+            {% if result.tech %}<button onclick="showTab('tech')">⚙️ Tech</button>{% endif %}
+            {% if result.contacts %}<button onclick="showTab('contacts')">📬 Contacts</button>{% endif %}
+        </div>
+        {% endif %}
 
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+        {% if result.meta %}
+        <div id="tab-meta" class="tab-content">
+            <h2>📑 Meta Data</h2>
+            <p><strong>Title:</strong> {{ result.meta.title }}</p>
+            <p><strong>Description:</strong> {{ result.meta.description }}</p>
+        </div>
+        {% endif %}
+
+        {% if result.tech %}
+        <div id="tab-tech" class="tab-content">
+            <h2>⚙️ Detected Tech Stack</h2>
+            <ul>
+                {% for t in result.tech %}
+                    <li>{{ t }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if result.contacts %}
+        <div id="tab-contacts" class="tab-content">
+            <h2>📬 Contact Info</h2>
+            <p><strong>Emails:</strong></p>
+            <ul>
+                {% for e in result.contacts.emails %}
+                    <li>{{ e }}</li>
+                {% endfor %}
+            </ul>
+            <p><strong>Social Links:</strong></p>
+            <ul>
+                {% for s in result.contacts.social_links %}
+                    <li><a href="{{ s }}" target="_blank">{{ s }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if result %}
+            <script>
+                showToast("✅ Scraping Complete!");
+                {% if result.meta %} showTab('meta'); {% endif %}
+            </script>
+        {% endif %}
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
